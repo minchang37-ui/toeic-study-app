@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEIC 학습</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #4F46E5; --primary-light: #818CF8; --primary-bg: #EEF2FF;
+  --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
+  --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+  --gray-400: #9CA3AF; --gray-600: #4B5563; --gray-800: #1F2937;
+  --radius: 12px; --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+.container { max-width: 640px; margin: 0 auto; padding: 16px; }
+.hidden { display: none !important; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; margin-bottom: 16px; }
+.header h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); cursor: pointer; }
+.header-icons { display: flex; gap: 8px; }
+.icon-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; padding: 6px; border-radius: 8px; }
+.icon-btn:hover { background: var(--gray-100); }
+
+/* Stats bar */
+.stats-bar { display: flex; gap: 8px; margin-bottom: 20px; }
+.stat-chip { flex: 1; background: white; border-radius: var(--radius); padding: 12px; text-align: center; box-shadow: var(--shadow); }
+.stat-chip .num { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+.stat-chip .label { font-size: .7rem; color: var(--gray-400); margin-top: 2px; }
+
+/* Source cards */
+.source-card { background: white; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.source-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.source-card .top { display: flex; justify-content: space-between; align-items: center; }
+.source-card .name { font-weight: 600; font-size: 1rem; }
+.source-card .count { font-size: .8rem; color: var(--gray-400); }
+.source-card .progress-bar { height: 6px; background: var(--gray-100); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.source-card .progress-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width .3s; }
+.source-card .bottom { display: flex; justify-content: space-between; margin-top: 6px; font-size: .75rem; color: var(--gray-400); }
+
+/* Quiz setup */
+.setup-section { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.setup-section h2 { font-size: 1.1rem; margin-bottom: 14px; }
+.setup-section label { display: block; font-size: .85rem; font-weight: 500; margin-bottom: 6px; color: var(--gray-600); }
+.btn-group { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.btn-group .btn { flex: 1; min-width: 70px; padding: 8px 4px; border: 2px solid var(--gray-200); border-radius: 8px; background: white; font-size: .85rem; cursor: pointer; text-align: center; transition: all .15s; }
+.btn-group .btn.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); font-weight: 600; }
+.day-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 14px; max-height: 200px; overflow-y: auto; }
+.day-btn { padding: 6px; border: 1.5px solid var(--gray-200); border-radius: 6px; background: white; font-size: .75rem; cursor: pointer; text-align: center; }
+.day-btn.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); font-weight: 600; }
+.start-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius); background: var(--primary); color: white; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.start-btn:hover { background: var(--primary-light); }
+
+/* Quiz */
+.quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.quiz-progress { font-size: .85rem; color: var(--gray-600); }
+.quiz-score { font-size: .85rem; font-weight: 600; }
+.progress-track { height: 4px; background: var(--gray-200); border-radius: 2px; margin-bottom: 20px; }
+.progress-track .fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width .3s; }
+.question-card { background: white; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px; text-align: center; }
+.question-card .q-label { font-size: .75rem; color: var(--gray-400); margin-bottom: 8px; }
+.question-card .q-text { font-size: 1.3rem; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+.question-card .q-sub { font-size: .8rem; color: var(--gray-400); margin-top: 8px; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option-btn { width: 100%; padding: 14px 16px; border: 2px solid var(--gray-200); border-radius: var(--radius); background: white; font-size: .95rem; text-align: left; cursor: pointer; transition: all .15s; line-height: 1.4; }
+.option-btn:hover:not(.disabled) { border-color: var(--primary-light); background: var(--primary-bg); }
+.option-btn.correct { border-color: var(--success); background: #ECFDF5; color: var(--success); font-weight: 600; }
+.option-btn.wrong { border-color: var(--danger); background: #FEF2F2; color: var(--danger); }
+.option-btn.disabled { cursor: default; opacity: .7; }
+.option-btn.show-correct { border-color: var(--success); background: #ECFDF5; }
+.next-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius); background: var(--primary); color: white; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 12px; }
+
+/* Result */
+.result-card { background: white; border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); text-align: center; }
+.result-card .emoji { font-size: 3rem; margin-bottom: 8px; }
+.result-card h2 { font-size: 1.3rem; margin-bottom: 16px; }
+.result-card .score-big { font-size: 3rem; font-weight: 800; color: var(--primary); }
+.result-card .score-label { font-size: .9rem; color: var(--gray-400); margin-bottom: 20px; }
+.result-actions { display: flex; gap: 8px; margin-top: 16px; }
+.result-actions button { flex: 1; padding: 12px; border: 2px solid var(--gray-200); border-radius: var(--radius); background: white; font-size: .9rem; cursor: pointer; font-weight: 500; }
+.result-actions button.primary { border-color: var(--primary); background: var(--primary); color: white; }
+
+/* Wrong notes */
+.wrong-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.wrong-header h2 { font-size: 1.1rem; }
+.wrong-item { background: white; border-radius: var(--radius); padding: 14px; margin-bottom: 8px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; }
+.wrong-item .word { font-weight: 600; }
+.wrong-item .meaning { font-size: .85rem; color: var(--gray-600); margin-top: 2px; }
+.wrong-item .del-btn { background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 1.1rem; padding: 4px 8px; }
+.wrong-empty { text-align: center; color: var(--gray-400); padding: 40px; }
+.wrong-actions { display: flex; gap: 8px; margin-bottom: 14px; }
+.wrong-actions button { padding: 8px 14px; border: 2px solid var(--gray-200); border-radius: 8px; background: white; font-size: .85rem; cursor: pointer; }
+.wrong-actions button.primary { border-color: var(--primary); background: var(--primary); color: white; }
+.filter-row { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-chip { padding: 4px 10px; border: 1.5px solid var(--gray-200); border-radius: 20px; font-size: .75rem; cursor: pointer; background: white; }
+.filter-chip.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+
+/* Stats */
+.stats-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.stats-card h3 { font-size: .9rem; color: var(--gray-400); margin-bottom: 12px; }
+.stats-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--gray-100); font-size: .9rem; }
+.stats-row:last-child { border: none; }
+.stats-row .val { font-weight: 600; }
+.streak-display { text-align: center; padding: 16px; }
+.streak-display .num { font-size: 2.5rem; font-weight: 800; color: var(--warning); }
+.streak-display .label { font-size: .85rem; color: var(--gray-400); }
+
+/* Grammar card */
+.grammar-info { font-size: .8rem; color: var(--gray-600); margin-top: 10px; line-height: 1.5; background: var(--gray-50); padding: 10px; border-radius: 8px; text-align: left; }
+
+.back-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <h1 id="logo">TOEIC 학습</h1>
+    <div class="header-icons">
+      <button class="icon-btn" onclick="showWrongNotes()" title="오답노트">&#128213;</button>
+      <button class="icon-btn" onclick="showStats()" title="통계">&#128202;</button>
+    </div>
+  </div>
+
+  <!-- MAIN SCREEN -->
+  <div id="screen-main">
+    <div class="stats-bar" id="main-stats"></div>
+    <div id="source-list"></div>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div id="screen-setup" class="hidden"></div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screen-quiz" class="hidden"></div>
+
+  <!-- RESULT SCREEN -->
+  <div id="screen-result" class="hidden"></div>
+
+  <!-- WRONG NOTES SCREEN -->
+  <div id="screen-wrong" class="hidden"></div>
+
+  <!-- STATS SCREEN -->
+  <div id="screen-stats" class="hidden"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+// ===================== STORAGE =====================
+const STORAGE_KEY = 'toeic_app_v1';
+function loadStore() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultStore(); }
+  catch { return defaultStore(); }
+}
+function defaultStore() {
+  return { wrongNotes: [], history: [], dailyLog: {}, streak: 0, lastDate: null };
+}
+function saveStore(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+let store = loadStore();
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function updateStreak() {
+  const today = todayStr();
+  if (store.lastDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (store.lastDate === yesterday) { store.streak++; }
+  else if (store.lastDate !== today) { store.streak = 1; }
+  store.lastDate = today;
+  saveStore(store);
+}
+function logQuiz(sourceId, total, correct) {
+  const today = todayStr();
+  if (!store.dailyLog[today]) store.dailyLog[today] = { total: 0, correct: 0 };
+  store.dailyLog[today].total += total;
+  store.dailyLog[today].correct += correct;
+  store.history.push({ date: today, sourceId, total, correct });
+  updateStreak();
+  saveStore(store);
+}
+function addWrong(sourceId, word, meaning) {
+  const key = sourceId + '::' + word;
+  if (!store.wrongNotes.find(w => w.key === key)) {
+    store.wrongNotes.push({ key, sourceId, word, meaning, addedAt: Date.now() });
+    saveStore(store);
+  }
+}
+function removeWrong(key) {
+  store.wrongNotes = store.wrongNotes.filter(w => w.key !== key);
+  saveStore(store);
+}
+
+// ===================== SCREENS =====================
+function showScreen(id) {
+  ['main','setup','quiz','result','wrong','stats'].forEach(s => {
+    document.getElementById('screen-' + s).classList.toggle('hidden', s !== id);
+  });
+}
+document.getElementById('logo').onclick = () => { showScreen('main'); renderMain(); };
+
+// ===================== MAIN =====================
+function renderMain() {
+  const today = todayStr();
+  const dl = store.dailyLog[today] || { total: 0, correct: 0 };
+  const totalStudied = store.history.reduce((a, h) => a + h.total, 0);
+  const totalCorrect = store.history.reduce((a, h) => a + h.correct, 0);
+  const rate = totalStudied ? Math.round(totalCorrect / totalStudied * 100) : 0;
+
+  document.getElementById('main-stats').innerHTML = `
+    <div class="stat-chip"><div class="num">${dl.total}</div><div class="label">오늘 학습</div></div>
+    <div class="stat-chip"><div class="num">${rate}%</div><div class="label">전체 정답률</div></div>
+    <div class="stat-chip"><div class="num">${store.streak}</div><div class="label">연속일</div></div>
+  `;
+
+  const list = document.getElementById('source-list');
+  list.innerHTML = TOEIC_DATA.map(src => {
+    const studied = store.history.filter(h => h.sourceId === src.id).reduce((a, h) => a + h.total, 0);
+    const pct = Math.min(100, Math.round(studied / src.items.length * 100));
+    return `<div class="source-card" onclick="showSetup('${src.id}')">
+      <div class="top"><span class="name">${src.name}</span><span class="count">${src.items.length}개</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="bottom"><span>${pct}% 학습</span><span>오답 ${store.wrongNotes.filter(w=>w.sourceId===src.id).length}개</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ===================== SETUP =====================
+let currentSource = null;
+let quizConfig = { direction: 'en2ko', count: 20, days: [] };
+
+function showSetup(sourceId) {
+  currentSource = TOEIC_DATA.find(s => s.id === sourceId);
+  quizConfig = { direction: 'en2ko', count: 20, days: [] };
+  showScreen('setup');
+  renderSetup();
+}
+
+function renderSetup() {
+  const s = currentSource;
+  const isGrammar = s.type === 'grammar';
+  const hasDays = s.days && s.days.length > 0;
+
+  let html = `<button class="back-btn" onclick="showScreen('main');renderMain()">&#8592;</button>
+  <div class="setup-section">
+    <h2>${s.name}</h2>`;
+
+  if (!isGrammar) {
+    html += `<label>출제 방향</label>
+    <div class="btn-group">
+      <div class="btn ${quizConfig.direction==='en2ko'?'active':''}" onclick="setDir('en2ko')">영어 → 한국어</div>
+      <div class="btn ${quizConfig.direction==='ko2en'?'active':''}" onclick="setDir('ko2en')">한국어 → 영어</div>
+    </div>`;
+  }
+
+  html += `<label>문제 수</label>
+  <div class="btn-group">
+    ${[10,20,50,100].map(n => `<div class="btn ${quizConfig.count===n?'active':''}" onclick="setCount(${n})">${n}문제</div>`).join('')}
+  </div>`;
+
+  if (hasDays) {
+    html += `<label>Day 선택 (미선택 시 전체)</label><div class="day-grid">
+      ${s.days.map(d => `<div class="day-btn ${quizConfig.days.includes(d)?'active':''}" onclick="toggleDay('${d}')">${d}</div>`).join('')}
+    </div>`;
+  }
+
+  html += `<button class="start-btn" onclick="startQuiz()">시작하기</button></div>`;
+  document.getElementById('screen-setup').innerHTML = html;
+}
+
+function setDir(d) { quizConfig.direction = d; renderSetup(); }
+function setCount(n) { quizConfig.count = n; renderSetup(); }
+function toggleDay(d) {
+  const i = quizConfig.days.indexOf(d);
+  if (i >= 0) quizConfig.days.splice(i, 1); else quizConfig.days.push(d);
+  renderSetup();
+}
+
+// ===================== QUIZ =====================
+let quiz = { questions: [], current: 0, correct: 0, answered: false };
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function startQuiz() {
+  const s = currentSource;
+  let pool = [...s.items];
+  if (s.days && quizConfig.days.length > 0) {
+    pool = pool.filter(i => quizConfig.days.includes(i.day));
+  }
+  if (pool.length < 4) { alert('문제가 4개 이상 필요합니다.'); return; }
+
+  const count = Math.min(quizConfig.count, pool.length);
+  const selected = shuffle(pool).slice(0, count);
+
+  quiz = { questions: [], current: 0, correct: 0, answered: false };
+
+  if (s.type === 'grammar') {
+    selected.forEach(item => {
+      const others = shuffle(s.items.filter(i => i.point !== item.point)).slice(0, 3);
+      const options = shuffle([item, ...others]);
+      quiz.questions.push({
+        questionText: item.description,
+        questionSub: item.example,
+        correctAnswer: item.point,
+        options: options.map(o => o.point),
+        word: item.point,
+        meaning: item.description,
+        extra: item
+      });
+    });
+  } else {
+    const isEn2Ko = quizConfig.direction === 'en2ko';
+    selected.forEach(item => {
+      const others = shuffle(pool.filter(i => i.word !== item.word)).slice(0, 3);
+      const allOptions = shuffle([item, ...others]);
+      quiz.questions.push({
+        questionText: isEn2Ko ? item.word : item.meaning,
+        correctAnswer: isEn2Ko ? item.meaning : item.word,
+        options: allOptions.map(o => isEn2Ko ? o.meaning : o.word),
+        word: item.word,
+        meaning: item.meaning
+      });
+    });
+  }
+
+  showScreen('quiz');
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const q = quiz.questions[quiz.current];
+  const total = quiz.questions.length;
+  const pct = Math.round((quiz.current) / total * 100);
+
+  let html = `<div class="quiz-header">
+    <span class="quiz-progress">${quiz.current + 1} / ${total}</span>
+    <span class="quiz-score" style="color:var(--success)">${quiz.correct}점</span>
+  </div>
+  <div class="progress-track"><div class="fill" style="width:${pct}%"></div></div>
+  <div class="question-card">
+    <div class="q-label">${currentSource.type === 'grammar' ? q.extra.category : (quizConfig.direction === 'en2ko' ? '영어 → 한국어' : '한국어 → 영어')}</div>
+    <div class="q-text">${q.questionText}</div>
+    ${q.questionSub ? `<div class="q-sub">${q.questionSub}</div>` : ''}
+  </div>
+  <div class="options">
+    ${q.options.map((opt, i) => `<button class="option-btn" onclick="answer(${i})" id="opt-${i}">${opt}</button>`).join('')}
+  </div>
+  <button class="next-btn hidden" id="next-btn" onclick="nextQuestion()">다음 문제</button>`;
+
+  document.getElementById('screen-quiz').innerHTML = html;
+}
+
+function answer(idx) {
+  if (quiz.answered) return;
+  quiz.answered = true;
+
+  const q = quiz.questions[quiz.current];
+  const selected = q.options[idx];
+  const isCorrect = selected === q.correctAnswer;
+
+  if (isCorrect) {
+    quiz.correct++;
+    document.getElementById('opt-' + idx).classList.add('correct');
+  } else {
+    document.getElementById('opt-' + idx).classList.add('wrong');
+    addWrong(currentSource.id, q.word, q.meaning);
+    q.options.forEach((opt, i) => {
+      if (opt === q.correctAnswer) document.getElementById('opt-' + i).classList.add('show-correct');
+    });
+  }
+
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.add('disabled'));
+
+  if (currentSource.type === 'grammar' && !isCorrect) {
+    const info = document.createElement('div');
+    info.className = 'grammar-info';
+    info.innerHTML = `<b>${q.extra.point}</b>: ${q.extra.description}<br>${q.extra.trap ? '&#9888; ' + q.extra.trap : ''}`;
+    document.querySelector('.question-card').appendChild(info);
+  }
+
+  const btn = document.getElementById('next-btn');
+  btn.classList.remove('hidden');
+  btn.textContent = quiz.current + 1 >= quiz.questions.length ? '결과 보기' : '다음 문제';
+}
+
+function nextQuestion() {
+  quiz.current++;
+  quiz.answered = false;
+  if (quiz.current >= quiz.questions.length) {
+    logQuiz(currentSource.id, quiz.questions.length, quiz.correct);
+    showResult();
+  } else {
+    renderQuiz();
+  }
+}
+
+// ===================== RESULT =====================
+function showResult() {
+  showScreen('result');
+  const total = quiz.questions.length;
+  const pct = Math.round(quiz.correct / total * 100);
+  const emoji = pct >= 90 ? '&#127942;' : pct >= 70 ? '&#128079;' : pct >= 50 ? '&#128170;' : '&#128218;';
+
+  document.getElementById('screen-result').innerHTML = `
+    <div class="result-card">
+      <div class="emoji">${emoji}</div>
+      <h2>퀴즈 완료!</h2>
+      <div class="score-big">${pct}%</div>
+      <div class="score-label">${total}문제 중 ${quiz.correct}문제 정답</div>
+      <div class="result-actions">
+        <button onclick="showScreen('main');renderMain()">홈으로</button>
+        <button onclick="showSetup('${currentSource.id}')">다시 풀기</button>
+        <button class="primary" onclick="retryWrong()">오답 복습</button>
+      </div>
+    </div>`;
+}
+
+function retryWrong() {
+  const wrongItems = store.wrongNotes.filter(w => w.sourceId === currentSource.id);
+  if (wrongItems.length < 4) { alert('오답이 4개 이상이어야 복습 퀴즈가 가능합니다.'); return; }
+
+  const pool = currentSource.items;
+  const count = Math.min(quizConfig.count, wrongItems.length);
+  const selected = shuffle(wrongItems).slice(0, count);
+  const isEn2Ko = quizConfig.direction === 'en2ko';
+
+  quiz = { questions: [], current: 0, correct: 0, answered: false };
+  selected.forEach(item => {
+    const others = shuffle(pool.filter(i => i.word !== item.word)).slice(0, 3);
+    const allOptions = shuffle([{ word: item.word, meaning: item.meaning }, ...others]);
+    quiz.questions.push({
+      questionText: isEn2Ko ? item.word : item.meaning,
+      correctAnswer: isEn2Ko ? item.meaning : item.word,
+      options: allOptions.map(o => isEn2Ko ? o.meaning : o.word),
+      word: item.word,
+      meaning: item.meaning
+    });
+  });
+
+  showScreen('quiz');
+  renderQuiz();
+}
+
+// ===================== WRONG NOTES =====================
+let wrongFilter = 'all';
+function showWrongNotes() {
+  showScreen('wrong');
+  wrongFilter = 'all';
+  renderWrongNotes();
+}
+
+function renderWrongNotes() {
+  const sources = [...new Set(store.wrongNotes.map(w => w.sourceId))];
+  const filtered = wrongFilter === 'all' ? store.wrongNotes : store.wrongNotes.filter(w => w.sourceId === wrongFilter);
+
+  let html = `<button class="back-btn" onclick="showScreen('main');renderMain()">&#8592;</button>
+  <div class="wrong-header"><h2>&#128213; 오답노트 (${store.wrongNotes.length})</h2></div>
+  <div class="filter-row">
+    <div class="filter-chip ${wrongFilter==='all'?'active':''}" onclick="wrongFilter='all';renderWrongNotes()">전체</div>
+    ${sources.map(sid => {
+      const src = TOEIC_DATA.find(s=>s.id===sid);
+      const name = src ? src.name : sid;
+      return `<div class="filter-chip ${wrongFilter===sid?'active':''}" onclick="wrongFilter='${sid}';renderWrongNotes()">${name}</div>`;
+    }).join('')}
+  </div>`;
+
+  if (filtered.length > 0) {
+    html += `<div class="wrong-actions">
+      <button class="primary" onclick="quizFromWrong()">오답 퀴즈</button>
+      <button onclick="if(confirm('모든 오답을 삭제할까요?')){store.wrongNotes=[];saveStore(store);renderWrongNotes();}">전체 삭제</button>
+    </div>`;
+    html += filtered.map(w => `<div class="wrong-item">
+      <div><div class="word">${w.word}</div><div class="meaning">${w.meaning}</div></div>
+      <button class="del-btn" onclick="removeWrong('${w.key.replace(/'/g, "\\'")}');renderWrongNotes()">&#10005;</button>
+    </div>`).join('');
+  } else {
+    html += '<div class="wrong-empty">오답이 없습니다! &#127881;</div>';
+  }
+
+  document.getElementById('screen-wrong').innerHTML = html;
+}
+
+function quizFromWrong() {
+  const items = wrongFilter === 'all' ? store.wrongNotes : store.wrongNotes.filter(w => w.sourceId === wrongFilter);
+  if (items.length < 4) { alert('오답이 4개 이상이어야 퀴즈가 가능합니다.'); return; }
+
+  const sid = items[0].sourceId;
+  currentSource = TOEIC_DATA.find(s => s.id === sid) || TOEIC_DATA[0];
+  quizConfig.direction = 'en2ko';
+
+  const pool = currentSource.items;
+  const count = Math.min(20, items.length);
+  const selected = shuffle(items).slice(0, count);
+
+  quiz = { questions: [], current: 0, correct: 0, answered: false };
+  selected.forEach(item => {
+    const others = shuffle(pool.filter(i => i.word !== item.word)).slice(0, 3);
+    const allOptions = shuffle([{ word: item.word, meaning: item.meaning }, ...others]);
+    quiz.questions.push({
+      questionText: item.word,
+      correctAnswer: item.meaning,
+      options: allOptions.map(o => o.meaning),
+      word: item.word,
+      meaning: item.meaning
+    });
+  });
+
+  showScreen('quiz');
+  renderQuiz();
+}
+
+// ===================== STATS =====================
+function showStats() {
+  showScreen('stats');
+  const today = todayStr();
+  const dl = store.dailyLog[today] || { total: 0, correct: 0 };
+  const totalStudied = store.history.reduce((a, h) => a + h.total, 0);
+  const totalCorrect = store.history.reduce((a, h) => a + h.correct, 0);
+  const rate = totalStudied ? Math.round(totalCorrect / totalStudied * 100) : 0;
+  const todayRate = dl.total ? Math.round(dl.correct / dl.total * 100) : 0;
+
+  let html = `<button class="back-btn" onclick="showScreen('main');renderMain()">&#8592;</button>
+  <div class="stats-card">
+    <div class="streak-display">
+      <div class="num">${store.streak}</div>
+      <div class="label">&#128293; 연속 학습일</div>
+    </div>
+  </div>
+  <div class="stats-card">
+    <h3>오늘 학습</h3>
+    <div class="stats-row"><span>문제 수</span><span class="val">${dl.total}</span></div>
+    <div class="stats-row"><span>정답률</span><span class="val">${todayRate}%</span></div>
+  </div>
+  <div class="stats-card">
+    <h3>전체 통계</h3>
+    <div class="stats-row"><span>총 학습 문제</span><span class="val">${totalStudied}</span></div>
+    <div class="stats-row"><span>전체 정답률</span><span class="val">${rate}%</span></div>
+    <div class="stats-row"><span>오답노트</span><span class="val">${store.wrongNotes.length}개</span></div>
+  </div>
+  <div class="stats-card">
+    <h3>소스별 정답률</h3>
+    ${TOEIC_DATA.map(src => {
+      const h = store.history.filter(x => x.sourceId === src.id);
+      const t = h.reduce((a, x) => a + x.total, 0);
+      const c = h.reduce((a, x) => a + x.correct, 0);
+      const r = t ? Math.round(c / t * 100) : 0;
+      return `<div class="stats-row"><span>${src.name}</span><span class="val">${t > 0 ? r + '%' : '-'}</span></div>`;
+    }).join('')}
+  </div>
+  <div class="stats-card">
+    <h3>데이터 관리</h3>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button style="flex:1;padding:10px;border:1.5px solid var(--gray-200);border-radius:8px;background:white;cursor:pointer;font-size:.85rem;" onclick="if(confirm('모든 학습 기록을 초기화할까요?')){localStorage.removeItem('${STORAGE_KEY}');store=defaultStore();showStats();}">기록 초기화</button>
+    </div>
+  </div>`;
+
+  document.getElementById('screen-stats').innerHTML = html;
+}
+
+// ===================== INIT =====================
+renderMain();
+</script>
+</body>
+</html>
